@@ -39,7 +39,7 @@ class GPIO(Fake):
         self.data3 = chip0.find_line("ID_SDA")
         self.data4 = chip0.find_line("GPIO5")
         self.data5 = chip0.find_line("GPIO6")
-        self.data6 = chip0.find_line("PWM1_OUT")
+        self.data6 = chip0.find_line("GPIO13")
         self.data7 = chip0.find_line("GPIO19")
         self.reset = chip0.find_line("GPIO26")
         self.uclk = chip0.find_line("GPIO16")
@@ -112,11 +112,19 @@ class GPIO(Fake):
             self.rd.set_value(1)            
             print("ADDR " + hex(testAddr) + " = " + hex(inData))
 
+    def print_register(self, address):
+        self.set_addr_pins(address)
+        time.sleep(0.01)
+        self.rd.set_value(0)
+        time.sleep(0.01)
+        inData = self.get_data_pins()
+        self.rd.set_value(1)            
+        print("ADDR " + hex(address) + " = " + hex(inData))
+
     def set_register(self, address, value):
         Fake.set_register(self, address, value)
         if (self.gpio_init == False):
             return
-        print("REGISTER " + hex(address) + " = " + hex(value))
         self.set_addr_pins(address)
         self.set_pins_write_mode()
         time.sleep(0.01)
@@ -125,11 +133,6 @@ class GPIO(Fake):
         self.wd.set_value(0)
         time.sleep(0.01)
         self.wd.set_value(1)
-        time.sleep(0.01)
-        self.wd.set_value(0)
-        time.sleep(0.01)
-        self.wd.set_value(1)
-        time.sleep(0.01)
         self.set_pins_read_mode()
 
 

@@ -19,6 +19,11 @@ class Control:
         controlValue = self.controlregister.get_register_int()
         self.interface.set_control(controlValue)
 
+    def set_osk(self, value):
+        self.controlregister.osk_en = value
+        controlValue = self.controlregister.get_register_int()
+        self.interface.set_control(controlValue)
+
     # Input 0-1 0-360 deg
     def set_phase_1(self, value):
         self.interface.set_phase_adjust_1(int(value * 8192))

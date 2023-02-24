@@ -15,7 +15,7 @@ class ControlRegister():
         self.mode = 0
         self.internal_update = 1
         self.bypass_inv_sinc = 0
-        self.osk_en = 1
+        self.osk_en = 0
         self.osk_int = 0
 
     def get_register_int(self):
