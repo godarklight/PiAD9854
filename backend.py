@@ -8,7 +8,7 @@ class Fake():
         self.registerdata = [0x0] * 38
         self.set_register(Register.UpdateClock0, 0x40)
         self.set_register(Register.Control3, 0x10)
-        self.set_register(Register.Control2, 0x24)
+        self.set_register(Register.Control2, 0x64)
         self.set_register(Register.Control1, 0x01)
         self.set_register(Register.Control0, 0x20)
         self.set_register(Register.OSKRate, 0x80)
@@ -24,6 +24,16 @@ class GPIO(Fake):
     def __init__(self):
         self.gpio_init = False
         Fake.__init__(self)
+
+    def autoconfigure(self):
+        deviceID = ""
+        with open('/sys/firmware/devicetree/base/model') as f:
+            deviceID = f.readline()
+        if ("Raspberry" in deviceID):
+            self.use_pi2()
+        if ("BPI-M5" in deviceID):
+            self.use_banana_pi_m5()
+
 
     def use_pi2(self):
         chip0 = gpiod.Chip("/dev/gpiochip0")
@@ -96,27 +106,26 @@ class GPIO(Fake):
         self.rd.set_value(1)
         self.wd.set_value(1)
         self.reset.set_value(1)
-        time.sleep(0.01)
+        time.sleep(0.001)
         self.reset.set_value(0)
-        time.sleep(0.01)
-        self.print_registers()
+        time.sleep(0.001)
         self.gpio_init = True
 
     def print_registers(self):
         for testAddr in range(40):
             self.set_addr_pins(testAddr)
-            time.sleep(0.01)
+            time.sleep(0.001)
             self.rd.set_value(0)
-            time.sleep(0.01)
+            time.sleep(0.001)
             inData = self.get_data_pins()
             self.rd.set_value(1)            
             print("ADDR " + hex(testAddr) + " = " + hex(inData))
 
     def print_register(self, address):
         self.set_addr_pins(address)
-        time.sleep(0.01)
+        time.sleep(0.001)
         self.rd.set_value(0)
-        time.sleep(0.01)
+        time.sleep(0.001)
         inData = self.get_data_pins()
         self.rd.set_value(1)            
         print("ADDR " + hex(address) + " = " + hex(inData))
@@ -127,13 +136,14 @@ class GPIO(Fake):
             return
         self.set_addr_pins(address)
         self.set_pins_write_mode()
-        time.sleep(0.01)
+        time.sleep(0.001)
         self.set_data_pins(value)
-        time.sleep(0.01)
+        time.sleep(0.001)
         self.wd.set_value(0)
-        time.sleep(0.01)
+        time.sleep(0.001)
         self.wd.set_value(1)
         self.set_pins_read_mode()
+        #print("UPDATED " + hex(address) + " -> " + hex(value))
 
 
     def get_register(self, address):
@@ -208,3 +218,18 @@ class GPIO(Fake):
         self.data5.set_direction_input()
         self.data6.set_direction_input()
         self.data7.set_direction_input()
+
+    def set_ud_input(self, value):
+        if (value):
+            self.uclk.set_direction_input()
+        else:
+            self.uclk.set_direction_output()
+            self.uclk.set_value(0)
+
+
+    def toggle_ud(self):
+        if (self.gpio_init == False):
+            return
+        self.uclk.set_value(1)
+        time.sleep(0.001)
+        self.uclk.set_value(0)
